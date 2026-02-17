@@ -1,0 +1,8 @@
+# Ignore environment file containing Supabase keys
+env.js
+# Node dependencies (in case additional tooling is added)
+node_modules
+# Build outputs
+dist
+.next
+out
