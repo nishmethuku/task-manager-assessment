@@ -1,22 +1,21 @@
 /*
  * Main JavaScript for the Task Manager app.
  *
- * This file is written as an ES module and uses the Supabase client
- * delivered via an ECMAScript module from jsDelivr. It signs the user
- * in anonymously (if not already signed in), fetches tasks, and handles
- * creating and toggling tasks.
+ * Uses Supabase with anonymous auth.
+ * Fetches, creates, and toggles tasks for the current user only.
  */
 
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm?v=2";
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-// Read config from env.js
-const SUPABASE_URL = window._env_?.SUPABASE_URL;
-const SUPABASE_ANON_KEY = window._env_?.SUPABASE_ANON_KEY;
+// --- Supabase config (works locally + on Vercel) ---
+const SUPABASE_URL =
+  import.meta.env?.VITE_SUPABASE_URL || window.SUPABASE_URL;
+
+const SUPABASE_ANON_KEY =
+  import.meta.env?.VITE_SUPABASE_ANON_KEY || window.SUPABASE_ANON_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  throw new Error(
-    "Supabase configuration missing. Please define SUPABASE_URL and SUPABASE_ANON_KEY in env.js."
-  );
+  throw new Error("Supabase configuration missing.");
 }
 
 // Create Supabase client
@@ -24,7 +23,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUserId = null;
 
-// DOM elements
+// --- DOM elements ---
 const form = document.getElementById("task-form");
 const titleInput = document.getElementById("title");
 const descriptionInput = document.getElementById("description");
@@ -34,7 +33,7 @@ const tasksList = document.getElementById("tasks-list");
 const errorDiv = document.getElementById("error");
 const loadingDiv = document.getElementById("loading");
 
-// UI helpers
+// --- UI helpers ---
 function setLoading(isLoading) {
   loadingDiv.style.display = isLoading ? "block" : "none";
 }
@@ -49,10 +48,7 @@ function setError(message) {
   }
 }
 
-/**
- * Ensure we have an anonymous session.
- * THIS is what actually creates the user in Supabase.
- */
+// --- Auth ---
 async function ensureAuthenticated() {
   const { data, error } = await supabase.auth.getSession();
   if (error) throw error;
@@ -67,9 +63,7 @@ async function ensureAuthenticated() {
   }
 }
 
-/**
- * Fetch tasks for the current user.
- */
+// --- Fetch tasks ---
 async function fetchTasks() {
   setLoading(true);
   setError(null);
@@ -89,9 +83,7 @@ async function fetchTasks() {
   }
 }
 
-/**
- * Create a new task.
- */
+// --- Create task ---
 async function createTask(e) {
   e.preventDefault();
   setError(null);
@@ -104,17 +96,13 @@ async function createTask(e) {
     return;
   }
 
-  const description = descriptionInput.value.trim() || null;
-  const priority = prioritySelect.value;
-  const dueDate = dueDateInput.value || null;
-
   try {
     const { error } = await supabase.from("tasks").insert({
       user_id: currentUserId,
       title,
-      description,
-      priority,
-      due_date: dueDate,
+      description: descriptionInput.value.trim() || null,
+      priority: prioritySelect.value,
+      due_date: dueDateInput.value || null,
       is_complete: false,
     });
 
@@ -129,9 +117,7 @@ async function createTask(e) {
   }
 }
 
-/**
- * Toggle completion.
- */
+// --- Toggle completion ---
 async function toggleTask(taskId, isComplete) {
   setLoading(true);
   setError(null);
@@ -151,9 +137,7 @@ async function toggleTask(taskId, isComplete) {
   }
 }
 
-/**
- * Render tasks to the DOM.
- */
+// --- Render tasks ---
 function renderTasks(tasks) {
   tasksList.innerHTML = "";
 
@@ -208,13 +192,13 @@ function renderTasks(tasks) {
   });
 }
 
-// Events
+// --- Events ---
 form.addEventListener("submit", createTask);
 
-// App entry point
+// --- Init ---
 async function init() {
   try {
-    await ensureAuthenticated(); // 🔑 THIS CREATES THE USER
+    await ensureAuthenticated();
     await fetchTasks();
   } catch (err) {
     setError(err.message);
