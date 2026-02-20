@@ -7,23 +7,21 @@
 
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-// --- Supabase config (works locally + on Vercel) ---
-const SUPABASE_URL =
-  import.meta.env?.VITE_SUPABASE_URL || window.SUPABASE_URL;
-
+// ----------------------------------------------------
+// Supabase config (HARDCODED so Vercel actually works)
+// ----------------------------------------------------
+const SUPABASE_URL = "https://apyeofktxjympxwipmnz.supabase.co";
 const SUPABASE_ANON_KEY =
-  import.meta.env?.VITE_SUPABASE_ANON_KEY || window.SUPABASE_ANON_KEY;
-
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  throw new Error("Supabase configuration missing.");
-}
+  "sb_publishable_8QCnRycO9sZEK9Lcnl4p0w_HpH_mjIG";
 
 // Create Supabase client
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUserId = null;
 
-// --- DOM elements ---
+// ----------------------------------------------------
+// DOM elements
+// ----------------------------------------------------
 const form = document.getElementById("task-form");
 const titleInput = document.getElementById("title");
 const descriptionInput = document.getElementById("description");
@@ -33,7 +31,9 @@ const tasksList = document.getElementById("tasks-list");
 const errorDiv = document.getElementById("error");
 const loadingDiv = document.getElementById("loading");
 
-// --- UI helpers ---
+// ----------------------------------------------------
+// UI helpers
+// ----------------------------------------------------
 function setLoading(isLoading) {
   loadingDiv.style.display = isLoading ? "block" : "none";
 }
@@ -48,7 +48,9 @@ function setError(message) {
   }
 }
 
-// --- Auth ---
+// ----------------------------------------------------
+// Auth (anonymous guest user)
+// ----------------------------------------------------
 async function ensureAuthenticated() {
   const { data, error } = await supabase.auth.getSession();
   if (error) throw error;
@@ -63,7 +65,9 @@ async function ensureAuthenticated() {
   }
 }
 
-// --- Fetch tasks ---
+// ----------------------------------------------------
+// Fetch tasks
+// ----------------------------------------------------
 async function fetchTasks() {
   setLoading(true);
   setError(null);
@@ -83,7 +87,9 @@ async function fetchTasks() {
   }
 }
 
-// --- Create task ---
+// ----------------------------------------------------
+// Create task
+// ----------------------------------------------------
 async function createTask(e) {
   e.preventDefault();
   setError(null);
@@ -117,7 +123,9 @@ async function createTask(e) {
   }
 }
 
-// --- Toggle completion ---
+// ----------------------------------------------------
+// Toggle completion
+// ----------------------------------------------------
 async function toggleTask(taskId, isComplete) {
   setLoading(true);
   setError(null);
@@ -137,7 +145,9 @@ async function toggleTask(taskId, isComplete) {
   }
 }
 
-// --- Render tasks ---
+// ----------------------------------------------------
+// Render tasks
+// ----------------------------------------------------
 function renderTasks(tasks) {
   tasksList.innerHTML = "";
 
@@ -192,10 +202,14 @@ function renderTasks(tasks) {
   });
 }
 
-// --- Events ---
+// ----------------------------------------------------
+// Events
+// ----------------------------------------------------
 form.addEventListener("submit", createTask);
 
-// --- Init ---
+// ----------------------------------------------------
+// Init app
+// ----------------------------------------------------
 async function init() {
   try {
     await ensureAuthenticated();
